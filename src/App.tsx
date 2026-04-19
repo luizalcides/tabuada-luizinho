@@ -40,8 +40,8 @@ export function App() {
   }
 
   function handleFinishPractice(result: PracticeResult) {
-    const { tabuada, acertos, total } = result;
-    const cartasIds = rollarCartas(tabuada, acertos, total, state);
+    const { tabuada, acertos, total, cartasPorStreak } = result;
+    const cartasIds = rollarCartas(tabuada, acertos, total, cartasPorStreak, state);
 
     let novoEstado = registerSession(state, {
       tabuada,
@@ -97,6 +97,8 @@ export function App() {
         acertos={screen.acertos}
         total={screen.total}
         cartasGanhas={screen.cartasGanhas}
+        state={state}
+        somLigado={state.somLigado}
         onVoltar={() => setScreen({ tipo: "home" })}
         onPraticarDeNovo={() => setScreen({ tipo: "practice", tabuada: screen.tabuada })}
       />
@@ -114,56 +116,54 @@ function rollarCartas(
   tabuada: Tabuada,
   acertos: number,
   total: number,
+  cartasPorStreak: number,
   state: GameState
 ): string[] {
   const cartas: string[] = [];
   const dificil = isTabuadaDificil(tabuada);
   const perfeito = acertos === total;
 
+  let estadoSimulado = state;
+  for (let i = 0; i < cartasPorStreak; i++) {
+    const id = rollCarta("comum", estadoSimulado);
+    if (!id) break;
+    cartas.push(id);
+    estadoSimulado = {
+      ...estadoSimulado,
+      cartas: {
+        ...estadoSimulado.cartas,
+        [id]: (estadoSimulado.cartas[id] ?? 0) + 1,
+      },
+    };
+  }
+
   if (perfeito && dificil) {
-    const epica = rollCarta("epica", state);
+    const epica = rollCarta("epica", estadoSimulado);
     if (epica) cartas.push(epica);
     if (Math.random() < 0.2) {
-      const lendaria = rollCarta("lendaria", state);
+      const lendaria = rollCarta("lendaria", estadoSimulado);
       if (lendaria) cartas.push(lendaria);
-    } else {
-      const comum = rollCarta("comum", state);
-      if (comum) cartas.push(comum);
     }
     return cartas;
   }
 
   if (perfeito) {
-    const rara = rollCarta("rara", state);
+    const rara = rollCarta("rara", estadoSimulado);
     if (rara) cartas.push(rara);
     if (Math.random() < 0.25) {
-      const epica = rollCarta("epica", state);
+      const epica = rollCarta("epica", estadoSimulado);
       if (epica) cartas.push(epica);
     }
     return cartas;
   }
 
   if (acertos >= total - 1) {
-    const comum = rollCarta("comum", state);
-    if (comum) cartas.push(comum);
     if (Math.random() < 0.4) {
-      const rara = rollCarta("rara", state);
+      const rara = rollCarta("rara", estadoSimulado);
       if (rara) cartas.push(rara);
     }
     return cartas;
   }
 
-  if (acertos >= total / 2) {
-    if (Math.random() < 0.7) {
-      const comum = rollCarta("comum", state);
-      if (comum) cartas.push(comum);
-    }
-    return cartas;
-  }
-
-  if (Math.random() < 0.4) {
-    const comum = rollCarta("comum", state);
-    if (comum) cartas.push(comum);
-  }
   return cartas;
 }
