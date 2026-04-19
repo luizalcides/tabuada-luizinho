@@ -2,6 +2,7 @@ import { CREATURES, type Rarity } from "../data/creatures";
 import type { Tabuada } from "../data/questions";
 
 const STORAGE_KEY = "tabuada-luizinho-v1";
+export const STORAGE_VERSION = 1;
 
 export type TabuadaStats = {
   acertos: number;
@@ -25,6 +26,15 @@ export type GameState = {
   historico: SessionRecord[];
   somLigado: boolean;
 };
+
+type BackupEnvelope = {
+  version: number;
+  app: "tabuada-luizinho";
+  exportedAt: number;
+  data: GameState;
+};
+
+export class BackupError extends Error {}
 
 const EMPTY_STATS: TabuadaStats = {
   acertos: 0,
@@ -68,6 +78,75 @@ export function saveState(state: GameState): void {
   } catch {
     // storage full or unavailable — silently continue
   }
+}
+
+export function resetState(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // silently ignore
+  }
+}
+
+export function exportState(state: GameState): string {
+  const envelope: BackupEnvelope = {
+    version: STORAGE_VERSION,
+    app: "tabuada-luizinho",
+    exportedAt: Date.now(),
+    data: state,
+  };
+  const json = JSON.stringify(envelope);
+  const bytes = new TextEncoder().encode(json);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+export function importState(code: string): GameState {
+  const cleaned = code.trim();
+  if (!cleaned) throw new BackupError("Código vazio.");
+  let json: string;
+  try {
+    const binary = atob(cleaned);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    json = new TextDecoder().decode(bytes);
+  } catch {
+    throw new BackupError("Código inválido — não consegui decodificar.");
+  }
+  let envelope: BackupEnvelope;
+  try {
+    envelope = JSON.parse(json) as BackupEnvelope;
+  } catch {
+    throw new BackupError("Código inválido — formato incorreto.");
+  }
+  if (envelope?.app !== "tabuada-luizinho") {
+    throw new BackupError("Este código não é um backup do Tabuada do Luizinho.");
+  }
+  if (typeof envelope.version !== "number" || envelope.version > STORAGE_VERSION) {
+    throw new BackupError(`Versão de backup não suportada (${envelope.version}).`);
+  }
+  const state = envelope.data;
+  if (!state || typeof state !== "object") {
+    throw new BackupError("Backup sem dados.");
+  }
+  const base = defaultState();
+  return {
+    cartas: { ...base.cartas, ...(state.cartas ?? {}) },
+    stats: { ...base.stats, ...(state.stats ?? {}) },
+    historico: Array.isArray(state.historico) ? state.historico : [],
+    somLigado: state.somLigado ?? false,
+  };
+}
+
+export function summarizeState(state: GameState): { cartas: number; sessoes: number } {
+  const cartas = Object.keys(state.cartas).filter(
+    (id) => (state.cartas[id] ?? 0) > 0
+  ).length;
+  const sessoes = Object.values(state.stats).reduce((s, x) => s + x.sessoes, 0);
+  return { cartas, sessoes };
 }
 
 export function addCarta(state: GameState, creatureId: string): GameState {

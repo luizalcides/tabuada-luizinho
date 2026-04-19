@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { TABUADAS_DISPONIVEIS } from "../data/questions";
-import type { GameState } from "../state/storage";
+import {
+  BackupError,
+  exportState,
+  importState,
+  resetState,
+  saveState,
+  summarizeState,
+  type GameState,
+} from "../state/storage";
 
 type Props = {
   state: GameState;
@@ -142,6 +150,167 @@ export function ParentDashboard({ state, onVoltar }: Props) {
         Dica: sessões curtas e frequentes funcionam melhor que uma longa. Se ele
         errar, a tela mostra os grupos — conte junto com ele para reforçar.
       </p>
+
+      <BackupSection state={state} />
+      <ResetSection />
     </div>
+  );
+}
+
+function BackupSection({ state }: { state: GameState }) {
+  const [codigoExportado, setCodigoExportado] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
+  const [inputCodigo, setInputCodigo] = useState("");
+  const [preview, setPreview] = useState<{ cartas: number; sessoes: number } | null>(
+    null
+  );
+  const [previewState, setPreviewState] = useState<GameState | null>(null);
+  const [erroImport, setErroImport] = useState<string | null>(null);
+
+  async function handleExport() {
+    const code = exportState(state);
+    setCodigoExportado(code);
+    setCopiado(false);
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiado(true);
+    } catch {
+      // clipboard API indisponível — o usuário copia do textarea manualmente
+    }
+  }
+
+  function handleValidar() {
+    setErroImport(null);
+    setPreview(null);
+    setPreviewState(null);
+    try {
+      const novo = importState(inputCodigo);
+      setPreviewState(novo);
+      setPreview(summarizeState(novo));
+    } catch (err) {
+      if (err instanceof BackupError) {
+        setErroImport(err.message);
+      } else {
+        setErroImport("Não foi possível ler o código.");
+      }
+    }
+  }
+
+  function handleConfirmarRestauracao() {
+    if (!previewState) return;
+    saveState(previewState);
+    window.location.reload();
+  }
+
+  return (
+    <section className="backup-section">
+      <h2>Backup da coleção</h2>
+      <p className="backup-desc">
+        Salve um código de backup em Notas ou WhatsApp. Se o progresso sumir
+        (trocar de celular, limpar dados), você recupera tudo colando o código.
+      </p>
+
+      <div className="backup-block">
+        <h3 className="backup-sub">Exportar</h3>
+        <button className="btn-primary small" onClick={handleExport}>
+          Gerar código de backup
+        </button>
+        {codigoExportado && (
+          <>
+            <textarea
+              className="backup-codigo"
+              value={codigoExportado}
+              readOnly
+              rows={4}
+              onFocus={(e) => e.target.select()}
+            />
+            <p className="backup-status">
+              {copiado
+                ? "✓ Copiado para a área de transferência. Cole em Notas ou WhatsApp."
+                : "Selecione o texto acima e copie manualmente."}
+            </p>
+          </>
+        )}
+      </div>
+
+      <div className="backup-block">
+        <h3 className="backup-sub">Restaurar</h3>
+        <textarea
+          className="backup-codigo"
+          value={inputCodigo}
+          onChange={(e) => {
+            setInputCodigo(e.target.value);
+            setPreview(null);
+            setPreviewState(null);
+            setErroImport(null);
+          }}
+          placeholder="Cole aqui o código de backup"
+          rows={4}
+        />
+        <button
+          className="btn-ghost small"
+          onClick={handleValidar}
+          disabled={inputCodigo.trim() === ""}
+        >
+          Validar código
+        </button>
+        {erroImport && <p className="erro-pin">{erroImport}</p>}
+        {preview && previewState && (
+          <div className="backup-preview">
+            <p>
+              Esse backup tem <strong>{preview.cartas} cartas</strong> e{" "}
+              <strong>{preview.sessoes} sessões</strong>.
+            </p>
+            <p className="backup-aviso">
+              Restaurar vai <strong>substituir</strong> o progresso atual. Confirma?
+            </p>
+            <button className="btn-primary small" onClick={handleConfirmarRestauracao}>
+              Sim, restaurar
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ResetSection() {
+  const [etapa, setEtapa] = useState<"inicial" | "confirmando">("inicial");
+
+  function handleZerar() {
+    resetState();
+    window.location.reload();
+  }
+
+  return (
+    <section className="reset-section">
+      <h2>Zona de risco</h2>
+      {etapa === "inicial" ? (
+        <button
+          className="btn-danger"
+          onClick={() => setEtapa("confirmando")}
+        >
+          Zerar progresso
+        </button>
+      ) : (
+        <div className="reset-confirm">
+          <p>
+            Tem certeza? Isso apaga <strong>todas as cartas, estatísticas e
+            histórico</strong>. Não tem como desfazer.
+          </p>
+          <p className="backup-aviso">
+            Dica: gere um código de backup antes, caso queira recuperar depois.
+          </p>
+          <div className="reset-actions">
+            <button className="btn-ghost small" onClick={() => setEtapa("inicial")}>
+              Cancelar
+            </button>
+            <button className="btn-danger small" onClick={handleZerar}>
+              Sim, apagar tudo
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
