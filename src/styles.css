@@ -250,6 +250,88 @@ h2 {
   gap: 18px;
 }
 
+/* ---------- Card meter (streak -> carta garantida) ---------- */
+.carta-meter {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow 0.3s;
+}
+
+.carta-meter.brilhando {
+  box-shadow: 0 0 0 2px var(--accent), 0 4px 16px rgba(244, 168, 37, 0.45);
+  animation: cartaMeterPulse 1.4s ease;
+}
+
+@keyframes cartaMeterPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.03);
+  }
+  60% {
+    transform: scale(1);
+  }
+}
+
+.carta-meter-bar {
+  position: relative;
+  height: 14px;
+  background: #e7eef4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.carta-meter-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--primary-soft), var(--accent));
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.carta-meter-pontos {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  pointer-events: none;
+}
+
+.carta-meter-ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid var(--primary-soft);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.carta-meter-ponto.aceso {
+  background: white;
+  border-color: var(--accent);
+  transform: scale(1.3);
+  box-shadow: 0 0 6px rgba(244, 168, 37, 0.9);
+}
+
+.carta-meter-texto {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+.carta-meter.brilhando .carta-meter-texto {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .pergunta {
   display: flex;
   flex-direction: column;
@@ -430,17 +512,24 @@ h2 {
   margin: 24px 0;
 }
 
+.cartas-dica {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  margin: 4px 0 0;
+}
+
 .cartas-reveal-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
   margin-top: 14px;
 }
 
 .carta-reveal {
-  width: 130px;
-  height: 170px;
+  position: relative;
+  width: 140px;
+  height: 184px;
   background: var(--surface);
   border: 3px solid var(--border);
   border-radius: var(--radius);
@@ -452,28 +541,205 @@ h2 {
   padding: 8px;
   box-shadow: var(--shadow);
   transition: transform 0.3s, border-color 0.3s;
+  overflow: hidden;
 }
 
 .carta-reveal:active {
   transform: scale(0.96);
 }
 
-.carta-reveal.aberto {
-  animation: flipIn 0.45s ease;
-}
-
-@keyframes flipIn {
-  0% {
-    transform: rotateY(180deg) scale(0.8);
-  }
-  100% {
-    transform: rotateY(0) scale(1);
-  }
-}
-
 .carta-back {
   font-size: 3rem;
   color: var(--primary-soft);
+  animation: cartaIdle 2.4s ease-in-out infinite;
+}
+
+@keyframes cartaIdle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.carta-brilho {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.carta-raios {
+  position: absolute;
+  inset: -40%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.carta-reveal .carta-emoji,
+.carta-reveal .carta-nome,
+.carta-reveal .carta-raridade {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------- Comum: flip rápido, sem firula ------- */
+.carta-reveal.aberto.raridade-comum {
+  animation: flipComum 0.5s ease;
+}
+
+@keyframes flipComum {
+  0% { transform: rotateY(180deg) scale(0.85); }
+  100% { transform: rotateY(0) scale(1); }
+}
+
+/* ------- Rara: flip + brilho roxo suave ------- */
+.carta-reveal.aberto.raridade-rara {
+  animation: flipRara 0.7s ease;
+  box-shadow: 0 0 0 2px #8a5cc7, 0 6px 20px rgba(138, 92, 199, 0.35);
+}
+
+.carta-reveal.aberto.raridade-rara .carta-brilho {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(178, 137, 232, 0.55),
+    rgba(178, 137, 232, 0) 70%
+  );
+  animation: brilhoPulso 1.6s ease-out;
+}
+
+@keyframes flipRara {
+  0% { transform: rotateY(180deg) scale(0.85); }
+  60% { transform: rotateY(-8deg) scale(1.04); }
+  100% { transform: rotateY(0) scale(1); }
+}
+
+/* ------- Épica: flip dramático + raios dourados ------- */
+.carta-reveal.aberto.raridade-epica {
+  animation: flipEpica 1s ease;
+  box-shadow: 0 0 0 3px #d4a017, 0 8px 28px rgba(212, 160, 23, 0.55);
+  background: linear-gradient(180deg, #fff9ec 0%, #fffdf5 100%);
+}
+
+.carta-reveal.aberto.raridade-epica .carta-brilho {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 221, 120, 0.75),
+    rgba(255, 221, 120, 0) 65%
+  );
+  animation: brilhoPulso 1.8s ease-out;
+}
+
+.carta-reveal.aberto.raridade-epica .carta-raios {
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(255, 210, 90, 0.35) 0deg 6deg,
+      transparent 6deg 30deg
+    );
+  animation: girarRaios 4s linear infinite, aparecerRaios 0.6s ease 0.3s both;
+}
+
+@keyframes flipEpica {
+  0% { transform: rotateY(180deg) scale(0.8); }
+  40% { transform: rotateY(30deg) scale(1.08); }
+  70% { transform: rotateY(-10deg) scale(1.04); }
+  100% { transform: rotateY(0) scale(1); }
+}
+
+/* ------- Lendária: flip cinemático + arco-íris + shake ------- */
+.carta-reveal.aberto.raridade-lendaria {
+  animation: flipLendaria 1.6s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  background: linear-gradient(
+    135deg,
+    #fff6fa 0%,
+    #fff 35%,
+    #f6fbff 60%,
+    #fffaf0 100%
+  );
+  box-shadow: 0 0 0 3px #e6558f, 0 10px 36px rgba(230, 85, 143, 0.55),
+    0 0 60px rgba(255, 210, 90, 0.35);
+}
+
+.carta-reveal.aberto.raridade-lendaria .carta-brilho {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(230, 85, 143, 0.35),
+    rgba(212, 160, 23, 0.35),
+    rgba(63, 163, 77, 0.35),
+    rgba(92, 156, 199, 0.35),
+    rgba(138, 92, 199, 0.35),
+    rgba(230, 85, 143, 0.35)
+  );
+  filter: blur(10px);
+  animation: brilhoPulso 2.4s ease-out, girarBrilho 6s linear infinite 0.4s;
+}
+
+.carta-reveal.aberto.raridade-lendaria .carta-raios {
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(255, 230, 160, 0.55) 0deg 4deg,
+      transparent 4deg 22deg
+    );
+  animation: girarRaios 3.2s linear infinite, aparecerRaios 0.8s ease 0.5s both;
+}
+
+.carta-reveal.aberto.raridade-lendaria .carta-emoji {
+  animation: emojiShine 1.8s ease 0.4s both;
+}
+
+@keyframes flipLendaria {
+  0% { transform: rotateY(180deg) scale(0.7); opacity: 0.2; }
+  25% { transform: rotateY(70deg) scale(1.15); opacity: 1; }
+  55% { transform: rotateY(-20deg) scale(1.1); }
+  80% { transform: rotateY(6deg) scale(1.02); }
+  100% { transform: rotateY(0) scale(1); }
+}
+
+@keyframes brilhoPulso {
+  0% { opacity: 0; transform: scale(0.6); }
+  40% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0.6; transform: scale(1); }
+}
+
+@keyframes girarBrilho {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes aparecerRaios {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes girarRaios {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes emojiShine {
+  0% { transform: scale(0.8); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  40% { transform: scale(1.2); filter: drop-shadow(0 0 12px rgba(255, 240, 180, 0.9)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(255, 240, 180, 0.5)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carta-reveal.aberto.raridade-comum,
+  .carta-reveal.aberto.raridade-rara,
+  .carta-reveal.aberto.raridade-epica,
+  .carta-reveal.aberto.raridade-lendaria {
+    animation: none;
+  }
+  .carta-reveal .carta-brilho,
+  .carta-reveal .carta-raios,
+  .carta-reveal .carta-emoji {
+    animation: none !important;
+  }
+  .carta-back {
+    animation: none;
+  }
 }
 
 .carta-emoji {
@@ -495,6 +761,48 @@ h2 {
 .sem-cartas {
   color: var(--text-soft);
   margin: 28px 20px;
+}
+
+/* ---------- Teaser de carta faltando ---------- */
+.teaser {
+  margin: 28px auto 8px;
+  max-width: 360px;
+  text-align: center;
+}
+
+.teaser h2 {
+  margin-bottom: 10px;
+}
+
+.teaser-card {
+  background: var(--surface);
+  border: 2.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow);
+}
+
+.teaser-silhueta {
+  font-size: 3.4rem;
+  filter: grayscale(1) brightness(0.5) opacity(0.35);
+}
+
+.teaser-raridade {
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.teaser-dica {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .results-actions {
