@@ -1,4 +1,4 @@
-const CACHE_NAME = "tabuada-luizinho-v2";
+const CACHE_NAME = "tabuada-luizinho-v3";
 const CORE = ["./", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {

@@ -18,7 +18,12 @@ export function Home({ state, onStart, onOpenAlbum, onOpenPais, onToggleSom }: P
   return (
     <div className="screen home">
       <header className="home-header">
-        <h1>Tabuada do Luizinho</h1>
+        <div className="home-title">
+          <h1>Tabuada do Luizinho</h1>
+          <span className="home-version">
+            v {__APP_BUILD_DATE__} · {__APP_COMMIT__}
+          </span>
+        </div>
         <button
           className="icon-btn"
           onClick={onToggleSom}

@@ -9,6 +9,10 @@ export type Creature = {
   curiosidade: string;
 };
 
+export function getArteUrl(id: string): string {
+  return `./cartas/${id}.webp`;
+}
+
 export const RARIDADE_ORDEM: Rarity[] = ["comum", "rara", "epica", "lendaria"];
 
 export const RARIDADE_LABEL: Record<Rarity, string> = {
