@@ -5,6 +5,7 @@ import {
   RARIDADE_LABEL,
   RARIDADE_ORDEM,
   TOTAL_CARTAS,
+  getArteUrl,
   type Creature,
 } from "../data/creatures";
 import type { GameState } from "../state/storage";
@@ -52,7 +53,16 @@ export function Album({ state, onVoltar }: Props) {
                     aria-label={tem ? c.nome : "Carta não coletada"}
                     disabled={!tem}
                   >
-                    <span className="album-emoji">{tem ? c.emoji : "❓"}</span>
+                    {tem ? (
+                      <img
+                        className="album-arte"
+                        src={getArteUrl(c.id)}
+                        alt={c.nome}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="album-emoji">❓</span>
+                    )}
                     <span className="album-nome">{tem ? c.nome : "???"}</span>
                     {qtd > 1 && <span className="album-qtd">x{qtd}</span>}
                   </button>
@@ -70,7 +80,11 @@ export function Album({ state, onVoltar }: Props) {
             style={{ borderColor: RARIDADE_COR[selecionada.raridade] }}
             onClick={(e) => e.stopPropagation()}
           >
-            <span className="modal-emoji">{selecionada.emoji}</span>
+            <img
+              className="modal-arte"
+              src={getArteUrl(selecionada.id)}
+              alt={selecionada.nome}
+            />
             <h3>{selecionada.nome}</h3>
             <span
               className="modal-raridade"

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   CREATURES,
+  getArteUrl,
   getCreatureById,
   RARIDADE_COR,
   RARIDADE_LABEL,
@@ -143,7 +144,11 @@ export function Results({
                     <>
                       <div className="carta-brilho" aria-hidden />
                       <div className="carta-raios" aria-hidden />
-                      <span className="carta-emoji">{creature.emoji}</span>
+                      <img
+                        className="carta-arte"
+                        src={getArteUrl(creature.id)}
+                        alt={creature.nome}
+                      />
                       <span className="carta-nome">{creature.nome}</span>
                       <span
                         className="carta-raridade"
@@ -175,9 +180,12 @@ export function Results({
             className="teaser-card"
             style={{ borderColor: RARIDADE_COR[teaser.raridade] }}
           >
-            <span className="teaser-silhueta" aria-hidden>
-              {teaser.emoji}
-            </span>
+            <img
+              className="teaser-silhueta"
+              src={getArteUrl(teaser.id)}
+              alt="Carta ainda não coletada"
+              aria-hidden
+            />
             <span
               className="teaser-raridade"
               style={{ color: RARIDADE_COR[teaser.raridade] }}

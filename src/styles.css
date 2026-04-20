@@ -578,10 +578,20 @@ h2 {
 }
 
 .carta-reveal .carta-emoji,
+.carta-reveal .carta-arte,
 .carta-reveal .carta-nome,
 .carta-reveal .carta-raridade {
   position: relative;
   z-index: 1;
+}
+
+.carta-arte {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--surface-soft);
 }
 
 /* ------- Comum: flip rápido, sem firula ------- */
@@ -686,7 +696,7 @@ h2 {
   animation: girarRaios 3.2s linear infinite, aparecerRaios 0.8s ease 0.5s both;
 }
 
-.carta-reveal.aberto.raridade-lendaria .carta-emoji {
+.carta-reveal.aberto.raridade-lendaria .carta-arte {
   animation: emojiShine 1.8s ease 0.4s both;
 }
 
@@ -734,7 +744,8 @@ h2 {
   }
   .carta-reveal .carta-brilho,
   .carta-reveal .carta-raios,
-  .carta-reveal .carta-emoji {
+  .carta-reveal .carta-emoji,
+  .carta-reveal .carta-arte {
     animation: none !important;
   }
   .carta-back {
@@ -787,8 +798,12 @@ h2 {
 }
 
 .teaser-silhueta {
-  font-size: 3.4rem;
-  filter: grayscale(1) brightness(0.5) opacity(0.35);
+  width: 120px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--surface-soft);
+  filter: grayscale(1) brightness(0.55) contrast(1.2) opacity(0.4);
 }
 
 .teaser-raridade {
@@ -873,11 +888,25 @@ h2 {
   font-size: 2.2rem;
 }
 
+.album-arte {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+
+.album-card.bloqueada .album-arte {
+  filter: grayscale(1);
+}
+
 .album-nome {
   font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
   color: var(--primary);
+  margin-top: 4px;
 }
 
 .album-qtd {
@@ -919,6 +948,14 @@ h2 {
 
 .modal-emoji {
   font-size: 4rem;
+}
+
+.modal-arte {
+  width: 180px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--surface-soft);
 }
 
 .modal-raridade {
