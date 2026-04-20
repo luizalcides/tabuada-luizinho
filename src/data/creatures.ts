@@ -10,7 +10,7 @@ export type Creature = {
 };
 
 export function getArteUrl(id: string): string {
-  return `./cartas/${id}.png`;
+  return `./cartas/${id}.webp`;
 }
 
 export const RARIDADE_ORDEM: Rarity[] = ["comum", "rara", "epica", "lendaria"];
