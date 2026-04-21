@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 /* eslint-disable react-hooks/exhaustive-deps */
-import { generateSession, type Question, type Tabuada } from "../data/questions";
+import {
+  generateSession,
+  type Modo,
+  type Question,
+  type Tabuada,
+} from "../data/questions";
 
 export type PracticeResult = {
   tabuada: Tabuada;
+  modo: Modo;
   acertos: number;
   total: number;
   duracaoSegundos: number;
@@ -12,6 +18,7 @@ export type PracticeResult = {
 
 type Props = {
   tabuada: Tabuada;
+  modo: Modo;
   onFinish: (result: PracticeResult) => void;
   onExit: () => void;
   somLigado: boolean;
@@ -21,8 +28,11 @@ type Phase = "perguntando" | "acertou" | "errou-primeira" | "errou-segunda";
 
 const STREAK_ALVO = 3;
 
-export function Practice({ tabuada, onFinish, onExit, somLigado }: Props) {
-  const questions = useMemo<Question[]>(() => generateSession(tabuada, 10), [tabuada]);
+export function Practice({ tabuada, modo, onFinish, onExit, somLigado }: Props) {
+  const questions = useMemo<Question[]>(
+    () => generateSession(tabuada, modo, 10),
+    [tabuada, modo]
+  );
   const [index, setIndex] = useState(0);
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState<Phase>("perguntando");
@@ -149,6 +159,7 @@ export function Practice({ tabuada, onFinish, onExit, somLigado }: Props) {
       const duracaoSegundos = Math.round((Date.now() - inicioRef.current) / 1000);
       onFinish({
         tabuada,
+        modo,
         acertos: acertosRef.current,
         total,
         duracaoSegundos,

@@ -1,5 +1,5 @@
 import { CREATURES, type Rarity } from "../data/creatures";
-import type { Tabuada } from "../data/questions";
+import type { Modo, Tabuada } from "../data/questions";
 
 const STORAGE_KEY = "tabuada-luizinho-v1";
 export const STORAGE_VERSION = 1;
@@ -25,6 +25,7 @@ export type GameState = {
   stats: Record<number, TabuadaStats>;
   historico: SessionRecord[];
   somLigado: boolean;
+  modo: Modo;
 };
 
 type BackupEnvelope = {
@@ -52,6 +53,7 @@ function defaultState(): GameState {
     stats,
     historico: [],
     somLigado: false,
+    modo: "sequencial",
   };
 }
 
@@ -66,6 +68,7 @@ export function loadState(): GameState {
       stats: { ...base.stats, ...parsed.stats },
       historico: parsed.historico ?? [],
       somLigado: parsed.somLigado ?? false,
+      modo: parsed.modo ?? "sequencial",
     };
   } catch {
     return defaultState();
@@ -138,6 +141,7 @@ export function importState(code: string): GameState {
     stats: { ...base.stats, ...(state.stats ?? {}) },
     historico: Array.isArray(state.historico) ? state.historico : [],
     somLigado: state.somLigado ?? false,
+    modo: state.modo ?? "sequencial",
   };
 }
 

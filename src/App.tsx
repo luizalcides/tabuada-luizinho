@@ -4,7 +4,7 @@ import { Practice, type PracticeResult } from "./components/Practice";
 import { Results } from "./components/Results";
 import { Album } from "./components/Album";
 import { ParentDashboard } from "./components/ParentDashboard";
-import { isTabuadaDificil, type Tabuada } from "./data/questions";
+import { isTabuadaDificil, type Modo, type Tabuada } from "./data/questions";
 import {
   addCarta,
   loadState,
@@ -16,10 +16,11 @@ import {
 
 type Screen =
   | { tipo: "home" }
-  | { tipo: "practice"; tabuada: Tabuada }
+  | { tipo: "practice"; tabuada: Tabuada; modo: Modo }
   | {
       tipo: "results";
       tabuada: Tabuada;
+      modo: Modo;
       acertos: number;
       total: number;
       cartasGanhas: string[];
@@ -36,12 +37,19 @@ export function App() {
   }, [state]);
 
   function handleStart(tabuada: Tabuada) {
-    setScreen({ tipo: "practice", tabuada });
+    setScreen({ tipo: "practice", tabuada, modo: state.modo });
   }
 
   function handleFinishPractice(result: PracticeResult) {
-    const { tabuada, acertos, total, cartasPorStreak } = result;
-    const cartasIds = rollarCartas(tabuada, acertos, total, cartasPorStreak, state);
+    const { tabuada, modo, acertos, total, cartasPorStreak } = result;
+    const cartasIds = rollarCartas(
+      tabuada,
+      acertos,
+      total,
+      cartasPorStreak,
+      modo,
+      state
+    );
 
     let novoEstado = registerSession(state, {
       tabuada,
@@ -57,6 +65,7 @@ export function App() {
     setScreen({
       tipo: "results",
       tabuada,
+      modo,
       acertos,
       total,
       cartasGanhas: cartasIds,
@@ -67,6 +76,13 @@ export function App() {
     setState((s) => ({ ...s, somLigado: !s.somLigado }));
   }
 
+  function handleToggleModo() {
+    setState((s) => ({
+      ...s,
+      modo: s.modo === "sequencial" ? "aleatorio" : "sequencial",
+    }));
+  }
+
   if (screen.tipo === "home") {
     return (
       <Home
@@ -75,6 +91,7 @@ export function App() {
         onOpenAlbum={() => setScreen({ tipo: "album" })}
         onOpenPais={() => setScreen({ tipo: "pais" })}
         onToggleSom={handleToggleSom}
+        onToggleModo={handleToggleModo}
       />
     );
   }
@@ -83,6 +100,7 @@ export function App() {
     return (
       <Practice
         tabuada={screen.tabuada}
+        modo={screen.modo}
         somLigado={state.somLigado}
         onFinish={handleFinishPractice}
         onExit={() => setScreen({ tipo: "home" })}
@@ -100,7 +118,9 @@ export function App() {
         state={state}
         somLigado={state.somLigado}
         onVoltar={() => setScreen({ tipo: "home" })}
-        onPraticarDeNovo={() => setScreen({ tipo: "practice", tabuada: screen.tabuada })}
+        onPraticarDeNovo={() =>
+          setScreen({ tipo: "practice", tabuada: screen.tabuada, modo: screen.modo })
+        }
       />
     );
   }
@@ -117,14 +137,18 @@ function rollarCartas(
   acertos: number,
   total: number,
   cartasPorStreak: number,
+  modo: Modo,
   state: GameState
 ): string[] {
   const cartas: string[] = [];
   const dificil = isTabuadaDificil(tabuada);
   const perfeito = acertos === total;
 
+  const streakPermitido =
+    modo === "sequencial" ? Math.max(0, cartasPorStreak - 1) : cartasPorStreak;
+
   let estadoSimulado = state;
-  for (let i = 0; i < cartasPorStreak; i++) {
+  for (let i = 0; i < streakPermitido; i++) {
     const id = rollCarta("comum", estadoSimulado);
     if (!id) break;
     cartas.push(id);

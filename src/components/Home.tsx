@@ -9,11 +9,20 @@ type Props = {
   onOpenAlbum: () => void;
   onOpenPais: () => void;
   onToggleSom: () => void;
+  onToggleModo: () => void;
 };
 
-export function Home({ state, onStart, onOpenAlbum, onOpenPais, onToggleSom }: Props) {
+export function Home({
+  state,
+  onStart,
+  onOpenAlbum,
+  onOpenPais,
+  onToggleSom,
+  onToggleModo,
+}: Props) {
   const coletadas = totalCartasColetadas(state);
   const progresso = Math.round((coletadas / TOTAL_CARTAS) * 100);
+  const sequencial = state.modo === "sequencial";
 
   return (
     <div className="screen home">
@@ -47,6 +56,45 @@ export function Home({ state, onStart, onOpenAlbum, onOpenPais, onToggleSom }: P
         <button className="btn-ghost" onClick={onOpenAlbum}>
           Abrir álbum 📖
         </button>
+      </section>
+
+      <section className="modo-card">
+        <div className="modo-info">
+          <span className="modo-titulo">Como estudar?</span>
+          <span className="modo-dica">
+            {sequencial
+              ? "Em ordem ajuda a memorizar (1 carta a menos de prêmio)."
+              : "Misturado vale mais cartas, mas é mais difícil."}
+          </span>
+        </div>
+        <div
+          className="modo-switch"
+          role="group"
+          aria-label="Modo de prática"
+        >
+          <button
+            type="button"
+            className={`modo-opcao${sequencial ? " ativa" : ""}`}
+            onClick={() => {
+              if (!sequencial) onToggleModo();
+            }}
+            aria-pressed={sequencial}
+          >
+            <span className="modo-opcao-icone">🔢</span>
+            <span className="modo-opcao-label">Em ordem</span>
+          </button>
+          <button
+            type="button"
+            className={`modo-opcao${!sequencial ? " ativa" : ""}`}
+            onClick={() => {
+              if (sequencial) onToggleModo();
+            }}
+            aria-pressed={!sequencial}
+          >
+            <span className="modo-opcao-icone">🔀</span>
+            <span className="modo-opcao-label">Misturado</span>
+          </button>
+        </div>
       </section>
 
       <section>
